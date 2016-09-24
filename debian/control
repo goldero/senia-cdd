@@ -3,11 +3,11 @@ Section: metapackages
 Priority: extra
 Maintainer: Angel Berlanas Vicente <angel.berlanas@gmail.com>
 Build-Depends: debhelper (>= 9), unzip
-Standards-Version: 3.9.4
+Standards-Version: 3.9.7
 
 Package: senia-backgrounds
 Architecture: all
 Depends: ${misc:Depends}
-Description: senia backgrounds
+Description: senia wallpapers and settings
  Customized backgrounds for SENIA IES
 

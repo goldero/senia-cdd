@@ -11,10 +11,11 @@ Depends: ${misc:Depends}, mate-desktop-environment
 Description: senia wallpapers and settings
  Customized backgrounds for SENIA IES
 
-Package: senia-session-cleaner
+Package: senia-session-cleaner-for-mate
 Architecture: all
 Depends: ${misc:Depends}
 Description: Senia-cdd session cleaner
+ Disable all other sessions for Senia 
 
 Package: senia-browsers-settings
 Architecture: all
@@ -25,12 +26,12 @@ Description: Senia-cdd settings for browsers
 
 Package: senia-cdd
 Architecture: all
-Depends: senia-backgrounds, senia-session-cleaner, senia-browsers-settings
+Depends: ${misc:Depends},senia-backgrounds, senia-session-cleaner-for-mate, senia-browsers-settings
 Description: IES La Senia CDD
  All the stuff
 
 Package: senia-non-essential-tools
 Architecture: all
-Depends: vim
+Depends: ${misc:Depends},vim
 Description: But highly recommended
  IES La Senia development packages

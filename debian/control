@@ -11,9 +11,21 @@ Depends: ${misc:Depends}, mate-desktop-environment
 Description: senia wallpapers and settings
  Customized backgrounds for SENIA IES
 
+Package: senia-session-cleaner
+Architecture: all
+Depends: ${misc:Depends}
+Description: Senia-cdd session cleaner
+
+Package: senia-browsers-settings
+Architecture: all
+Depends: ${misc:Depends}
+Description: Senia-cdd settings for browsers
+ Enables always private browsing on firefox
+ Settings custom web page
+
 Package: senia-cdd
 Architecture: all
-Depends: senia-backgrounds
+Depends: senia-backgrounds, senia-session-cleaner, senia-browsers-settings
 Description: IES La Senia CDD
  All the stuff
 

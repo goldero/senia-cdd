@@ -31,7 +31,7 @@ case $1 in
         remove|purge|abort-install|disappear)
        		for f in $FILES_TO_DIVERT ; do
 	        	rm -f $f
-		        dpkg-divert --package llxcfg-desktops-keeper --rename --quiet --remove $f 
+		        dpkg-divert --package senia-session-cleaner-for-mate --rename --quiet --remove $f 
 		done
               
                 ;;

@@ -1,5 +1,6 @@
-[org/gnome/desktop/background]
-picture-uri='/opt/senia/pixmaps/backgrounds/seniabooks_1600x1200.png'
+[org/mate/background]
+picture-filename='/opt/senia/pixmaps/backgrounds/seniabooks_1600x1200.png'
 primary-color='000000'
 secondary-color='FFFFFF'
 show-desktop-icons=true
+picture-options='zoom'

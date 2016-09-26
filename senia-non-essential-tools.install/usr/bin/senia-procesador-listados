@@ -38,15 +38,21 @@ sh = book.sheet_by_index(0)
 for rx in range(sh.nrows):
 	
 	aux_n = sh.cell(rx,1).value.replace(" ","-")
-	nombre=elimina_tildes(aux_n)
+	nombre=elimina_tildes(aux_n).strip()
 	aux_a = sh.cell(rx,2).value.replace(" ","-")
-	apellido=elimina_tildes(aux_a)
-	
-	ruta=diraux+"/"+os.path.basename(fichero).split(".")[0]+"/"+apellido+"_"+nombre
+	apellido=elimina_tildes(aux_a).strip()
+	aux_a2 = sh.cell(rx,3).value.replace(" ","-")
+	apellido2=""
+	try: 
+		apellido2=elimina_tildes(aux_a2).strip()
+	except Exception as e:
+		print("Ha ocurrido un error "+str(e))
+
+	ruta=diraux+"/"+os.path.basename(fichero).split(".")[0]+"/"+apellido+"_"+apellido2+"__"+nombre
 	if apellido != "Apellido1":
 		print(" [ Creando ] : "+ruta)
 		if not os.path.isdir(ruta):
-			os.makedirs(diraux+"/"+os.path.basename(fichero).split(".")[0]+"/"+aux_a+"_"+aux_n)
+			os.makedirs(ruta)
 			pass
 	
 	

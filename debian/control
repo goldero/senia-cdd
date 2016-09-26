@@ -32,6 +32,6 @@ Description: IES La Senia CDD
 
 Package: senia-non-essential-tools
 Architecture: all
-Depends: ${misc:Depends},vim, python3-xlrd
+Depends: ${misc:Depends},vim, python3-xlrd, ${python:Depends}
 Description: But highly recommended
  IES La Senia development packages

@@ -1,3 +1,9 @@
+senia-cdd (0.3) xenial; urgency=high
+
+  * Added more stuff for Itaca...
+
+ -- Angel Berlanas Vicente <angel.berlanas@gmail.com>  Tue, 27 Sep 2016 06:52:59 +0200
+
 senia-cdd (0.2) xenial; urgency=medium
 
   * Added some useful scripts to manage itaca forms from hell 

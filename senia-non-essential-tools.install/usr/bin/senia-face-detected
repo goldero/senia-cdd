@@ -1,19 +1,43 @@
 #!/usr/bin/python
+# Author: Angel Berlanas Vicente
+# angel.berlanas@gmail.com
+
 import cv2
 import sys
+import os
 
-# Get user supplied values
+# Obtenemos algunos parametros interesantes
 imagePath = sys.argv[1]
-#cascPath = sys.argv[2]
 cascPath="/usr/share/senia-non-essential-tools/haarcascade_frontalface.xml"
+
+
+# Sanity checks
+if not os.path.exists(imagePath):
+	print(" [ ERROR ] : La imagen no existe o no se puede leer")
+	sys.exit(1)
+
+nombre_JPG=os.path.basename(imagePath)
+ruta_carnet=os.path.dirname(imagePath)
+nombre_jpg,aux=os.path.splitext(nombre_JPG)
+fichero_carnet=str(nombre_jpg)+"_carnet"
+
+print(" [ Procesando "+imagePath+" ] ->\n * Nombre : "+nombre_JPG+"\n * Path : "+ruta_carnet+"\n * Carnet : "+fichero_carnet)
 
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 # Read the image
 image = cv2.imread(imagePath)
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+# Escalamos la imagen
+scaled_factor=7
+
+newx, newy= image.shape[1]/scaled_factor,image.shape[0]/scaled_factor
+image_scaled = cv2.resize(image,(newx,newy))
+#cv2.imshow("escalada",image_scaled)
+
+# Detectamos las caras en la imagen
+gray = cv2.cvtColor(image_scaled, cv2.COLOR_BGR2GRAY)
 # Detect faces in the image
 faces = faceCascade.detectMultiScale(
     gray,
@@ -23,12 +47,29 @@ faces = faceCascade.detectMultiScale(
     flags = cv2.cv.CV_HAAR_SCALE_IMAGE
 )
 
-print "Found {0} faces!".format(len(faces))
 
-# Draw a rectangle around the faces
+
+print " [ Encontradas {0} cara/s!] ".format(len(faces))
+if (len(faces) > 1):
+	print("[ Warning!] : Mas de una cara detectada -> Generando varias fotos")	
+
+aux=0
+# Operamos con las caras
 for (x, y, w, h) in faces:
-    cv2.rectangle(image, (x, y), (x+w+20, y+h+100), (0, 255, 0), 2)
+	# Dibujamos un rectangulo alrededor
+	# cv2.rectangle(image_scaled, (x-60, y-70), (x+w+50, y+h+100), (0, 255, 0), 2)
+	# Recortamos
+	if (aux != 0):
+		fichero_carnet=fichero_carnet+"_"+str(aux)
+		
+	crop_img=image_scaled[y-70:y+h+100,x-60:x+w+50]
+	cv2.imshow("Carnet",crop_img)
+	cv2.imwrite(ruta_carnet+"/"+fichero_carnet+".jpg",crop_img)
+	aux= aux+1
 
-cv2.imshow("Faces found", image)
+#cv2.imshow("[ Caras encontradas ]", image_scaled)
 cv2.waitKey(0)
+
+
+
 

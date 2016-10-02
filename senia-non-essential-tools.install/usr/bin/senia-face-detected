@@ -38,7 +38,7 @@ else :
 	ruta_carnet=os.path.dirname(imagePath)
 	nombre_jpg,aux=os.path.splitext(nombre_JPG)
 	fichero_carnet=str(nombre_jpg)+"_carnet"
-
+	print("\n\n\n")
 	print(" [ Procesando "+imagePath+" ] ->\n * Nombre : "+nombre_JPG+"\n * Path : "+ruta_carnet+"\n * Carnet : "+fichero_carnet)
 
 	# Create the haar cascade

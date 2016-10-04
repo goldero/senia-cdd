@@ -119,14 +119,14 @@ def makeCarnet(imagePath,debug=False):
 	print (" \t[ Encontradas {0} cara/s ! ] ".format(len(faces)))
 
 	# Girar la imagen en busca de fotos en los giros
-	giro=0
-	while ((len(faces) == 0 ) and (giro<=270)):
-		giro=giro+90
+	giro=360
+	while ((len(faces) == 0 ) and (giro>=90)):
+		giro=giro-90
 		img_scaled=rotateImage(img_scaled,giro,debug)
-		faces = detectFaces(img_current,debug)
+		faces = detectFaces(img_scaled,debug)
 
 		if (debug):
-			print (" \t[ DEBUG ] : Al girar "+giro+" grados hemos encontradas {0} cara/s ! ".format(len(faces)))
+			print (" \t[ DEBUG ] : Al girar "+str(giro)+" grados hemos encontradas {0} cara/s ! ".format(len(faces)))
 
 		
 	if (len(faces) > 1):
@@ -136,8 +136,10 @@ def makeCarnet(imagePath,debug=False):
 	# Operamos con las caras
 	for (x, y, w, h) in faces:
 		# Dibujamos un rectangulo alrededor
-		# cv2.rectangle(image_scaled, (x-60, y-70), (x+w+50, y+h+100), (0, 255, 0), 2)
+		#cv2.rectangle(img_scaled, (x-60, y-70), (x+w+50, y+h+100), (0, 255, 0), 2)
 		# Recortamos
+		#showImage(img_scaled)
+		#sys.exit(0)
 		if (aux != 0):
 			basename_fichero_carnet=basename_fichero_carnet+"_"+str(aux)
 		

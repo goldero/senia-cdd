@@ -6,52 +6,79 @@ import cv2
 import sys
 import os
 
+# Algunos parametros que deben ser modificados via CLI
+scaled_factor=7
+cascPath="/usr/share/senia-non-essential-tools/haarcascade_frontalface.xml"
 
+def showUsage():
+	"""
+	Usage of senia-image-toolbox
+	"""
+	print("\t[ USAGE ] : senia-image-toolbox [ -s| -r90| -r180 | -r270 | -c ] ImagePath [ -d ]")
+	print("\t [OPTIONS]")
+	print("\t -s\t Show the image as is")
+	print("\t -r90\t Rotate the image 90 degrees")
+	print("\t -r180\t Rotate the image 180 degrees")
+	print("\t -r270\t Rotate the image 270 degrees")
+	print("\t -c\t Create a carnet with all the faces in the image")
+	print("\t -d\t POSITIONAL argument that enables DEBUG")
 
 def sanityChecks(imagePath):
-	# Sanity checks
+	"""
+	Sanity Checks para asegurarnos que podemos ejecutar el script sin 
+	problemas.
+	"""
 	if not os.path.exists(imagePath):
 		print(" [ ERROR ] : La imagen no existe o no se puede leer")
 		sys.exit(1)
 
-def showImage(imagePath,debug=False):
-	# Vamos a ir depurando el programa y devolver las diferentes opciones que 
-	# vamos necesitando, por ahora si le pasamos una opcion "-s" lo que haremos
-	# sera mostrar la imagen que ha sido indicada como argumento
-	image = cv2.imread(imagePath)
-	scaled_factor=7
-	newx, newy= image.shape[1]/scaled_factor,image.shape[0]/scaled_factor
-	image_scaled = cv2.resize(image,(newx,newy))
-	cv2.imshow("Image",image_scaled)
+
+def scaleImage(img,factor,debug=False):
+	"""
+	Escala la imagen a un factor
+	Devuelve una imagen escalada
+	"""
+	newx, newy= img.shape[1]/scaled_factor,img.shape[0]/scaled_factor
+	img_scaled = cv2.resize(img,(newx,newy))
+	return img_scaled
+
+
+def showImage(img,debug=False):
+	"""
+	Vamos a ir depurando el programa y devolver las diferentes opciones que 
+	vamos necesitando, por ahora si le pasamos una opcion "-s" lo que haremos
+	sera mostrar la imagen que ha sido indicada como argumento
+	"""
+	cv2.imshow("Image",img)
 	cv2.waitKey(0)
 	sys.exit(0)
+	
 
+def rotateImage(img,degrees,debug=False):
+	"""
+	Girar la imagen un numero de grados
+	"""
+	if ( debug ):
+		print (" * Giremos la imagen : "+str(degrees)+" Grados")
+	
+	# grab the dimensions of the image and calculate the center
+	# of the image
+	(h, w) = img.shape[:2]
+	center = (w / 2, h / 2)
+	# rotate the image by 180 degrees
+	M = cv2.getRotationMatrix2D(center, degrees, 1.0)
+	rotated_img = cv2.warpAffine(img, M, (w, h))
+	return rotated_img
 
-def makeCarnet(imagePath,debug=False):
-
-	nombre_JPG=os.path.basename(imagePath)
-	ruta_carnet=os.path.dirname(imagePath)
-	nombre_jpg,aux=os.path.splitext(nombre_JPG)
-	fichero_carnet=str(nombre_jpg)+"_carnet"
-	print("\n\n\n")
-	print(" [ Procesando "+imagePath+" ] ->\n * Nombre : "+nombre_JPG+"\n * Path : "+ruta_carnet+"\n * Carnet : "+fichero_carnet)
-
-	# Create the haar cascade
+def detectFaces(img,debug=False):
+	"""
+	Metodo aislado de deteccion de caras
+	"""
+	# Create haarCascade
 	faceCascade = cv2.CascadeClassifier(cascPath)
-
-	# Read the image
-	image = cv2.imread(imagePath)
-
-	# Escalamos la imagen
-	scaled_factor=7
-
-	newx, newy= image.shape[1]/scaled_factor,image.shape[0]/scaled_factor
-	image_scaled = cv2.resize(image,(newx,newy))
-	#cv2.imshow("escalada",image_scaled)
-
-	# Detectamos las caras en la imagen
-	gray = cv2.cvtColor(image_scaled, cv2.COLOR_BGR2GRAY)
-	# Detect faces in the image
+	
+	faces=[]
+	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	faces = faceCascade.detectMultiScale(
 			gray,
 			scaleFactor=1.1,
@@ -59,38 +86,52 @@ def makeCarnet(imagePath,debug=False):
 			minSize=(30, 30),
 			flags = cv2.cv.CV_HAAR_SCALE_IMAGE
 	)
+	return faces
 
-	print " [ Encontradas {0} cara/s ! ] ".format(len(faces))
-	giro=0
-	while ((len(faces) == 0 ) and (giro<=360)):
-		giro=giro+90
-		print(" * Giremos la imagen : "+str(giro)+" Grados")
-		# grab the dimensions of the image and calculate the center
-		# of the image
-		(h, w) = image_scaled.shape[:2]
-		center = (w / 2, h / 2)
-		# rotate the image by 180 degrees
-		M = cv2.getRotationMatrix2D(center, giro, 1.0)
-		rotated = cv2.warpAffine(image_scaled, M, (w, h))
+
+def makeCarnet(imagePath,debug=False):
+	"""
+	Genera un carnet a partir de cada una de las caras que se encuentran
+	en la imagen, en caso de no encontrar caras, gira la imagen hasta que
+	encuentra o en su defecto ha realizado una vuelta completa.
+	"""
+	
+	nombre_JPG=os.path.basename(imagePath)
+	ruta_carnet=os.path.dirname(imagePath)
+	nombre_jpg,aux=os.path.splitext(nombre_JPG)
+	basename_fichero_carnet=str(nombre_jpg)+"_carnet"
+	
+	if (debug):
+		print("\n\n\n")
 		
-		# DEBUG PURPOSES
-		#cv2.imshow("Girada",rotated)
-		#cv2.waitKey(0)
-		 
-		gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
-		print(" * [ Warning ] : No se han detectado caras...procesando de nuevo")
-		faces = faceCascade.detectMultiScale(
-			gray,
-			scaleFactor=1.1,
-			minNeighbors=5,
-			minSize=(30,30),
-			flags = cv2.cv.CV_HAAR_SCALE_IMAGE
-		)
-		image_scaled=rotated
-		print " [ En la segunda pasada hemos encontradas {0} cara/s ! ] ".format(len(faces))
+	print(" [ Procesando "+imagePath+" ]")
+	
+	if (debug):
+			print(" * Datos ->\n \t* Nombre : "+nombre_JPG+"\n \t* Path : "+ruta_carnet+"\n \t* Carnet : "+basename_fichero_carnet)
+
+	# Read the image
+	img = cv2.imread(imagePath)
+	img_scaled = scaleImage(img,debug)
+	
+	# Detect faces
+	faces=detectFaces(img_scaled,debug)
+
+	print (" \t[ Encontradas {0} cara/s ! ] ".format(len(faces)))
+
+	# Girar la imagen en busca de fotos en los giros
+	giro=0
+	while ((len(faces) == 0 ) and (giro<=270)):
+		giro=giro+90
+		img_scaled=rotateImage(img_scaled,giro,debug)
+		faces = detectFaces(img_current,debug)
+
+		if (debug):
+			print (" \t[ DEBUG ] : Al girar "+giro+" grados hemos encontradas {0} cara/s ! ".format(len(faces)))
+
 		
 	if (len(faces) > 1):
-		print(" [ Warning ] : Mas de una cara detectada -> Generando varias fotos")	
+		print(" \t[ Warning ] : Mas de una cara detectada -> Generando varias fotos")	
+	
 	aux=0
 	# Operamos con las caras
 	for (x, y, w, h) in faces:
@@ -98,47 +139,60 @@ def makeCarnet(imagePath,debug=False):
 		# cv2.rectangle(image_scaled, (x-60, y-70), (x+w+50, y+h+100), (0, 255, 0), 2)
 		# Recortamos
 		if (aux != 0):
-			fichero_carnet=fichero_carnet+"_"+str(aux)
+			basename_fichero_carnet=basename_fichero_carnet+"_"+str(aux)
 		
-		crop_img=image_scaled[y-40:y+h+100,x-60:x+w+50]
-		try :
-			pass
-			#cv2.imshow("Carnet",crop_img)
-			#cv2.waitKey(0)
-		except Exception as e:
-			print(" [ ERROR ] "+str(e))
-			#cv2.imshow("Carnet",image_scaled)
-			#cv2.waitKey(0)
+		img_crop=img_scaled[y-40:y+h+100,x-60:x+w+50]
 		
-		cv2.imwrite(ruta_carnet+"/"+fichero_carnet+".jpg",crop_img)
+		cv2.imwrite(ruta_carnet+"/"+basename_fichero_carnet+".jpg",img_crop)
 		aux=int(aux)+1
-		if (debug):
-				print(" [DEBUG] : Carnet : "+ruta_carnet+"/"+fichero_carnet+".jpg")
-		#cv2.imshow("[ Caras encontradas ]", image_scaled)
-		#cv2.waitKey(0)
+		
+		print(" [ Carnet : "+ruta_carnet+"/"+basename_fichero_carnet+".jpg")
+		
 
 
 if __name__ == "__main__":
+	
 	# Obtenemos algunos parametros interesantes
 	accion=sys.argv[1]
-	imagePath = sys.argv[2]
-	
+	imagePath = sys.argv[2]	
 	try:
 		debugFlag = sys.argv[3]
-		if (debugFlag == -d):
+		if (debugFlag == "-d"):
 			debug=True
+			print(" * [ DEBUG MODE ON ] ")
 	except Exception as e:
-			print(" [DEBUG] : Not in debug mode")
+			print(" * [ DEBUG MODE OFF ] ")
 			debug=False
-			
-	cascPath="/usr/share/senia-non-essential-tools/haarcascade_frontalface.xml"
+	
+	# Operaciones acerca de los argumentos		
 	sanityChecks(imagePath)
-	
-	
+		
 	if (accion == "-s"):
-			showImage(imagePath)
+		img=cv2.imread(imagePath,debug)
+		img_scaled=scaleImage(img,scaled_factor)
+		showImage(img_scaled)
+			
+	elif (accion == "-r90"):
+		img=cv2.imread(imagePath,debug)
+		img_rotated=rotateImage(img,90,debug)
+		cv2.imwrite(imagePath,img_rotated)
+			
+	elif (accion == "-r180"):
+		img=cv2.imread(imagePath,debug)
+		img_rotated=rotateImage(img,180,debug)
+		cv2.imwrite(imagePath,img_rotated)
+	
+	elif (accion == "-r270"):
+		img=cv2.imread(imagePath,debug)
+		img_rotated=rotateImage(img,270,debug)
+		cv2.imwrite(imagePath,img_rotated)
+		
 	elif (accion == "-c"):
-			makeCarnet(imagePath)
+		makeCarnet(imagePath,debug)
+			
+	else :
+		showUsage()
+		sys.exit(1)
 	
 
 

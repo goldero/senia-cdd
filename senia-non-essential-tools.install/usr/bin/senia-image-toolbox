@@ -5,6 +5,7 @@
 import cv2
 import sys
 import os
+import pyexiv2
 
 # Algunos parametros que deben ser modificados via CLI
 scaled_factor=7
@@ -53,6 +54,29 @@ def showImage(img,debug=False):
 	cv2.waitKey(0)
 	sys.exit(0)
 	
+def getExifData(imagePath,debug=False):
+	from PIL import Image, ExifTags
+
+	try:
+		image=Image.open(imagePath)
+		for orientation in ExifTags.TAGS.keys():
+			if ExifTags.TAGS[orientation]=='Orientation':
+				break
+		exif=dict(image._getexif().items())
+
+		if exif[orientation] == 3:
+			image=image.rotate(180, expand=True)
+		elif exif[orientation] == 6:
+			image=image.rotate(270, expand=True)
+		elif exif[orientation] == 8:
+			image=image.rotate(90, expand=True)
+			
+		image.save(imagePath)
+		image.close()
+
+	except (AttributeError, KeyError, IndexError):
+		# cases: image don't have getexif
+		pass
 
 def rotateImage(img,degrees,debug=False):
 	"""
@@ -120,13 +144,14 @@ def makeCarnet(imagePath,debug=False):
 
 	# Girar la imagen en busca de fotos en los giros
 	giro=360
-	while ((len(faces) == 0 ) and (giro>=90)):
-		giro=giro-90
-		img_scaled=rotateImage(img_scaled,giro,debug)
-		faces = detectFaces(img_scaled,debug)
+	if (len(faces) ==0 ):
+		while (giro>=90 ):
+			giro=giro-90
+			img_scaled=rotateImage(img_scaled,giro,debug)
+			faces = detectFaces(img_scaled,debug)
 
-		if (debug):
-			print (" \t[ DEBUG ] : Al girar "+str(giro)+" grados hemos encontradas {0} cara/s ! ".format(len(faces)))
+			if (debug):
+				print (" \t[ DEBUG ] : Al girar "+str(giro)+" grados hemos encontradas {0} cara/s ! ".format(len(faces)))
 
 		
 	if (len(faces) > 1):
@@ -143,7 +168,7 @@ def makeCarnet(imagePath,debug=False):
 		if (aux != 0):
 			basename_fichero_carnet=basename_fichero_carnet+"_"+str(aux)
 		
-		img_crop=img_scaled[y-40:y+h+100,x-60:x+w+50]
+		img_crop=img_scaled[y-100:y+h+90,x-60:x+w+50]
 		
 		cv2.imwrite(ruta_carnet+"/"+basename_fichero_carnet+".jpg",img_crop)
 		aux=int(aux)+1
@@ -190,7 +215,11 @@ if __name__ == "__main__":
 		cv2.imwrite(imagePath,img_rotated)
 		
 	elif (accion == "-c"):
+		getExifData(imagePath,debug)
 		makeCarnet(imagePath,debug)
+		
+	elif (accion == "-i"):
+		getExifData(imagePath,debug)
 			
 	else :
 		showUsage()

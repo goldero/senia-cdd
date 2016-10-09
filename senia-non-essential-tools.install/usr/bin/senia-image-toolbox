@@ -5,7 +5,8 @@
 import cv2
 import sys
 import os
-import pyexiv2
+from PIL import Image, ExifTags
+#from PIL.ExifTags import TAGS
 
 # Algunos parametros que deben ser modificados via CLI
 scaled_factor=7
@@ -53,10 +54,12 @@ def showImage(img,debug=False):
 	cv2.imshow("Image",img)
 	cv2.waitKey(0)
 	sys.exit(0)
-	
-def getExifData(imagePath,debug=False):
-	from PIL import Image, ExifTags
 
+def rotateByExif(imagePath,debug=False):
+	"""
+	Rotate the images if the Exif data 
+	contains rotation information.
+	"""
 	try:
 		image=Image.open(imagePath)
 		for orientation in ExifTags.TAGS.keys():
@@ -73,9 +76,21 @@ def getExifData(imagePath,debug=False):
 			
 		image.save(imagePath)
 		image.close()
-
+		
 	except (AttributeError, KeyError, IndexError):
-		# cases: image don't have getexif
+		print (" [ Warning ] : No hay datos Exif en la imagen :"+str(imagePath))
+		pass
+
+	
+def getExifData(imagePath,debug=False):
+	"""
+	Obtenemos los datos de Exif de las imagenes
+	"""
+	try:
+		for (k,v) in Image.open(imagePath)._getexif().iteritems():
+			print '%s = %s' % (TAGS.get(k), v)
+	except (AttributeError, KeyError, IndexError):
+		print (" [ Warning ] : No hay datos Exif en la imagen :"+str(imagePath))
 		pass
 
 def rotateImage(img,degrees,debug=False):
@@ -161,14 +176,43 @@ def makeCarnet(imagePath,debug=False):
 	# Operamos con las caras
 	for (x, y, w, h) in faces:
 		# Dibujamos un rectangulo alrededor
-		#cv2.rectangle(img_scaled, (x-60, y-70), (x+w+50, y+h+100), (0, 255, 0), 2)
+		
+		# Factores de recorte
+		factorAltura = 90
+		factorAnchura= 50
+		
+		#cv2.rectangle(img_scaled, (x, y), (x+w, y+h), (255, 0, 0), 2)
+		#cv2.rectangle(img_scaled, (int(x-(factorAnchura+10)), int(y-(factorAltura+10))), (int(x+w+factorAnchura), int(y+h+factorAltura)), (0, 255, 0), 2)
+		
+		alto=((y+h+factorAltura)-(y-(factorAltura+10)))
+		ancho=((x+w+factorAnchura)-(x-(factorAnchura+10)))
+		
+		print(" Ancho -> "+str(ancho) + " y Alto -> "+str(alto))
+		proporcion=(float(ancho) / float(alto))
+		
+		while (proporcion >0.8):
+			
+			factorAltura = factorAltura+10
+			#cv2.rectangle(img_scaled, (int(x-(factorAnchura+10)), int(y-(factorAltura+10))), (int(x+w+factorAnchura), int(y+h+factorAltura)), (0, 255, 0), 2)
+
+			alto=((y+h+factorAltura)-(y-(factorAltura+10)))
+			ancho=((x+w+factorAnchura)-(x-(factorAnchura+10)))
+
+			print(" Ancho -> "+str(ancho) + " y Alto -> "+str(alto))
+			proporcion=(float(ancho) / float(alto))
+		
+		print(" [DEBUG] La proporcion es :"+str(proporcion))
+		
 		# Recortamos
 		#showImage(img_scaled)
 		#sys.exit(0)
+		
+		# WiP
+		
 		if (aux != 0):
 			basename_fichero_carnet=basename_fichero_carnet+"_"+str(aux)
 		
-		img_crop=img_scaled[y-100:y+h+90,x-60:x+w+50]
+		img_crop=img_scaled[y-(factorAltura+10):y+h+factorAltura,x-(factorAnchura+10):x+w+factorAnchura]
 		
 		cv2.imwrite(ruta_carnet+"/"+basename_fichero_carnet+".jpg",img_crop)
 		aux=int(aux)+1
@@ -215,7 +259,7 @@ if __name__ == "__main__":
 		cv2.imwrite(imagePath,img_rotated)
 		
 	elif (accion == "-c"):
-		getExifData(imagePath,debug)
+		rotateByExif(imagePath,debug)
 		makeCarnet(imagePath,debug)
 		
 	elif (accion == "-i"):

@@ -1,13 +1,25 @@
 #!/bin/bash
 
 # SANITY CHECKS
-if [ $# -ne 5 ] ; then
-	echo " [ USAGE ] : $0 NAME IP MASK GW SERVERIP"
+
+
+if [ $(id -u) -ne 0 ]; then
+	echo " [ ERROR ]: You need execution privileges to run this program"
+	echo " [ YOU SHALL NOT PASS! ]"
+	echo " Please run : "
+	echo " sudo $(basename $0)"
 	exit 1
+
 fi
 
 
 
+
+
+if [ $# -ne 5 ] ; then
+	echo " [ USAGE ] : $0 NAME IP MASK GW SERVERIP"
+	exit 1
+fi
 
 MYNAME="$1"
 MYIP="$2"

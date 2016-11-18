@@ -35,3 +35,11 @@ Architecture: all
 Depends: ${misc:Depends},${python:Depends},vim, python3-xlrd,python-opencv,python3-pyside.qtgui, python3-pyside.qtcore, python-pil
 Description: But highly recommended
  IES La Senia development packages and tools packages
+
+Package: senia-firstboot
+Architecture: all
+Depends: ${misc:Depends},${python:Depends}, nagios-nrpe-server, ocsinventory-agent
+Recommends: vim
+Description: Senia Firstboot for cloned systems
+ Firstboot script made by David and Fons to solve 
+ the braindamage of Angel Berlanas.

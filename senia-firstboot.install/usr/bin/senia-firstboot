@@ -2,20 +2,22 @@
 
 # SANITY CHECKS
 
+#These files have been edited:
+	#/etc/hostname
+	#/etc/network/interfaces
+	#/etc/hosts
+	#/etc/ocsinventory/ocsinventory-agent.cfg
+	#/etc/nagios/nrpe.cfg
 
-if [ $(id -u) -ne 0 ]; then
+#This explains you to use sudo when you don't use it.
+if [ $(id -u) -ne 0 ]; then 
 	echo " [ ERROR ]: You need execution privileges to run this program"
 	echo " [ YOU SHALL NOT PASS! ]"
 	echo " Please run : "
 	echo " sudo $(basename $0)"
 	exit 1
-
 fi
-
-
-
-
-
+#This explains you how to use this script.
 if [ $# -ne 5 ] ; then
 	echo " [ USAGE ] : $0 NAME IP MASK GW SERVERIP"
 	exit 1
@@ -33,27 +35,31 @@ TPL_HOSTNAME="$TPL_PATH/hostname.tpl"
 TPL_HOSTS="$TPL_PATH/Hosts.tpl"
 TMP_DIR=$(mktemp -d /tmp/firstboot.XXXXXX)
 HOST=""
+#The line below shows the first Ethernet Interface(Ex. enp0s3)
 IFACE=$(ip addr | grep ^2 | cut -d " " -f2 | tr ":" " "| sed -e "s/ //g")
 
-set_hostname(){
+  set_hostname(){
 	# Set Hostname
 	sed -e "s/_@_HOSTNAME_@_/$MYNAME/g" $TPL_HOSTNAME > $TMP_DIR/etc.hostname
 }
 
-set_hosts(){
+  set_hosts(){
 	# Set Hosts
 	sed -e "s/127.0.1.1.*/127.0.1.1\t$MYNAME/g" /etc/hosts > $TMP_DIR/etc.hosts
 }
-set_ocsinventory(){
+  
+  set_ocsinventory(){
 	# Set OcsInventory
 	echo "server=$SERVERIP" > $TMP_DIR/etc.ocsinventory.ocsinventory-agent.cfg
 	echo "tag=$MYNAME" >> $TMP_DIR/etc.ocsinventory.ocsinventory-agent.cfg
 }
-set_nrpe(){
+
+  set_nrpe(){
 	# Set NRPE
 	sed -e "s/_@_MYIP_@_/$MYIP/g;s/_@_SERVERIP_@_/$SERVERIP/g" "$TPL_PATH/nrpe.tpl" > $TMP_DIR/nrpe.tpl
 }
-set_IP(){
+
+  set_IP(){
 	# Set IP
 	ifdown $IFACE
 	systemctl stop networking
@@ -64,7 +70,8 @@ set_IP(){
 	systemctl start networking
 }
 
-final_build(){
+  final_build(){
+  
 	# Hostname
 	cp $TMP_DIR/etc.hostname /etc/hostname
 	hostname -F /etc/hostname
@@ -81,9 +88,7 @@ final_build(){
 	mkdir -p /etc/nagios/
 	cp $TMP_DIR/nrpe.tpl /etc/nagios/nrpe.cfg
 }
-
-
-
+#Shows your basic configuration
 echo " [ Firstboot of La Senia ] "
 echo " Setting: "
 echo "  * Name : $MYNAME"
@@ -98,13 +103,5 @@ set_ocsinventory
 set_nrpe
 set_IP
 final_build
-
-
-
-
-
-
-
-
 
 exit 0
